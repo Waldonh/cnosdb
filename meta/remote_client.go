@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"github.com/cnosdb/cnosdb"
+	internal "github.com/cnosdb/cnosdb/meta/internal"
 	"github.com/cnosdb/cnosdb/vend/cnosql"
 	"github.com/cnosdb/cnosdb/vend/db/logger"
-	internal "github.com/cnosdb/cnosdb/meta/internal"
 	"github.com/gogo/protobuf/proto"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"

@@ -11,8 +11,6 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	itoml "github.com/cnosdb/cnosdb/vend/common/pkg/toml"
-	"github.com/cnosdb/cnosdb/vend/db/tsdb"
 	"github.com/cnosdb/cnosdb/meta"
 	"github.com/cnosdb/cnosdb/monitor"
 	"github.com/cnosdb/cnosdb/pkg/logger"
@@ -23,6 +21,8 @@ import (
 	"github.com/cnosdb/cnosdb/server/precreator"
 	"github.com/cnosdb/cnosdb/server/rp"
 	"github.com/cnosdb/cnosdb/server/subscriber"
+	itoml "github.com/cnosdb/cnosdb/vend/common/pkg/toml"
+	"github.com/cnosdb/cnosdb/vend/db/tsdb"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 )

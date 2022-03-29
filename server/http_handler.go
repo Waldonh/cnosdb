@@ -27,9 +27,9 @@ import (
 	"github.com/cnosdb/cnosdb/vend/db/models"
 	"github.com/cnosdb/cnosdb/vend/db/query"
 	"github.com/cnosdb/cnosdb/vend/db/tsdb"
-	"github.com/gogo/protobuf/proto"
-
+	"github.com/cnosdb/cnosdb/vend/storage"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/prometheus/prompb"
@@ -148,6 +148,8 @@ type Handler struct {
 	}
 
 	QueryExecutor *query.Executor
+
+	StorageStore storage.Store
 
 	Monitor interface {
 		Statistics(tags map[string]string) ([]*monitor.Statistic, error)
@@ -1004,6 +1006,84 @@ func convertToEpoch(r *query.Result, epoch string) {
 	}
 }
 
+//func (h *Handler) find(ctx context.Context, request *datatypes.ReadFilterRequest) (interface{}, error) {
+//	// get source
+//	var source storage.ReadSource
+//	if err := types.UnmarshalAny(request.ReadSource, &source); err != nil {
+//		return nil, err
+//	}
+//
+//	var db, rp, start, end = source.Database, source.RetentionPolicy, request.Range.Start, request.Range.End
+//
+//	// validate args
+//	di := h.metaClient.Database(db)
+//	if di == nil {
+//		return nil, errors.New("no database")
+//	}
+//	if rp == "" {
+//		rp = di.DefaultRetentionPolicy
+//	}
+//	rpi := di.RetentionPolicy(rp)
+//	if rpi == nil {
+//		return nil, errors.New("invalid retention policy")
+//	}
+//	if start <= 0 {
+//		start = models.MinNanoTime
+//	}
+//	if end <= 0 {
+//		end = models.MaxNanoTime
+//	}
+//
+//	// find shardIDs
+//	groups, err := h.metaClient.ShardGroupsByTimeRange(db, rp, time.Unix(0, start), time.Unix(0, end))
+//	if err != nil {
+//		return nil, err
+//	}
+//	if len(groups) == 0 {
+//		// TODO this was a typed nil
+//		return nil, nil
+//	}
+//	sort.Sort(meta.ShardGroupInfos(groups))
+//	shardIDs := make([]uint64, 0, len(groups[0].Shards)*len(groups))
+//	for _, g := range groups {
+//		for _, si := range g.Shards {
+//			shardIDs = append(shardIDs, si.ID)
+//		}
+//	}
+//	if len(shardIDs) == 0 {
+//		return nil, nil
+//	}
+//
+//	var shards = h.TSDBStore.Shards(shardIDs)
+//
+//	// build index series cursor
+//	queries, err := tsdb.CreateCursorIterators(ctx, shards)
+//	if err != nil {
+//		return nil, err
+//	}
+//	if queries == nil {
+//		return nil, nil
+//	}
+//
+//	opt := query.IteratorOptions{
+//		Aux: []cnosql.VarRef{{Val: "Key"}},
+//		Authorizer: query.OpenAuthorizer,
+//		Ascending: true,
+//		Ordered: true,
+//	}
+//	h.TSDBStore.series
+//
+//	var cur tsdb.SeriesCursor
+//	if ic, err := ; err != nil {
+//		return nil, err
+//	} else if ic == nil {
+//		return nil, nil
+//	} else {
+//		cur = ic
+//	}
+//
+//}
+
 func (h *Handler) servePromRead(w http.ResponseWriter, r *http.Request, user meta.User) {
 	compressed, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -1053,7 +1133,7 @@ func (h *Handler) servePromRead(w http.ResponseWriter, r *http.Request, user met
 	}
 
 	ctx := context.Background()
-	rs, err := h.store.ReadFilter(ctx, readRequest)
+	rs, err := h.StorageStore.ReadFilter(ctx, readRequest)
 	if err != nil {
 		h.httpError(w, err.Error(), http.StatusBadRequest)
 		return
@@ -1095,7 +1175,7 @@ func (h *Handler) servePromRead(w http.ResponseWriter, r *http.Request, user met
 				}
 
 				for i, ts := range a.Timestamps {
-					series.Samples = append(series.Samples, &prompb.Sample{
+					series.Samples = append(series.Samples, prompb.Sample{
 						Value:     a.Values[i],
 						Timestamp: ts / int64(time.Millisecond),
 					})

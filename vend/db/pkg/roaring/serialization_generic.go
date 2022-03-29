@@ -1,3 +1,4 @@
+//go:build (!amd64 && !386) || appengine
 // +build !amd64,!386 appengine
 
 package roaring

@@ -22,8 +22,8 @@ import (
 	"sort"
 	"unsafe"
 
-	"github.com/cnosdb/cnosdb/vend/db/pkg/estimator"
 	"github.com/cespare/xxhash"
+	"github.com/cnosdb/cnosdb/vend/db/pkg/estimator"
 )
 
 // Current version of HLL implementation.
